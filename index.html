@@ -40,7 +40,7 @@
         .config-row { display: flex; gap: 5px; margin-bottom: 5px; }
         input[type="password"] { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; }
         .btn-s { background: var(--primary); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; }
-        .btn-help { background: #27ae60; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
+        .btn-help { background: #27ae60; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; margin-bottom: 8px; }
         
         #guideModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
         #guideModal.active { display: flex; }
@@ -204,6 +204,31 @@
 <script>
     let cur = 1;
     const MODEL = "gemini-2.0-flash";
+
+    // 우클릭 방지
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+    });
+
+    // 개발자 도구 단축키 방지
+    document.addEventListener('keydown', function(e) {
+        // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U
+        if (e.keyCode === 123 || 
+            (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) ||
+            (e.ctrlKey && e.keyCode === 85)) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // 텍스트 선택 및 드래그 방지
+    document.addEventListener('selectstart', function(e) {
+        if (e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT') {
+            e.preventDefault();
+            return false;
+        }
+    });
 
     window.onload = () => {
         const saved = localStorage.getItem('g_key');
