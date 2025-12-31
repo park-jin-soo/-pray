@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>마음의 산책 Pro | Gemini 2.5 Flash</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Pretendard:wght@400;600&display=swap');
+
+        :root {
+            --primary: #2c3e50;
+            --accent: #d35400;
+            --iphone-bg: #ffffff;
+            --pastel-bg: #f4f7fb;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #1a1a1a;
+            margin: 0; padding: 0;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh;
+        }
+
+        #device-container {
+            width: 393px; height: 852px;
+            background: var(--iphone-bg);
+            border-radius: 55px;
+            box-shadow: 0 0 0 12px #222, 0 20px 80px rgba(0,0,0,0.6);
+            position: relative; overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+
+        #config-bar {
+            padding: 60px 20px 10px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            z-index: 100;
+        }
+        .config-row { display: flex; gap: 5px; margin-bottom: 5px; }
+        input[type="password"] { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; }
+        .btn-s { background: var(--primary); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; }
+        .btn-help { background: #27ae60; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
+        
+        #guideModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+        #guideModal.active { display: flex; }
+        .guide-content { background: white; width: 90%; max-width: 360px; border-radius: 20px; padding: 25px; max-height: 80vh; overflow-y: auto; }
+        .guide-content h2 { color: var(--accent); font-size: 20px; margin: 0 0 15px 0; text-align: center; }
+        .guide-step { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid var(--accent); }
+        .guide-step-num { background: var(--accent); color: white; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 8px; font-size: 14px; }
+        .guide-step-title { font-weight: bold; font-size: 15px; color: var(--primary); margin-bottom: 8px; }
+        .guide-step-desc { font-size: 13px; line-height: 1.6; color: #555; margin-bottom: 10px; }
+        .guide-link { display: inline-block; background: #3498db; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: bold; margin-top: 5px; }
+        .btn-close-guide { background: #95a5a6; color: white; border: none; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; }
+
+        header { padding: 15px 20px; text-align: center; background: #fff; }
+        h1 { font-family: 'Noto Serif KR', serif; font-size: 24px; color: var(--primary); margin: 0; }
+
+        .content-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 100px; }
+        .step { display: none; padding: 20px; animation: fadeIn 0.4s ease; }
+        .step.active { display: block; }
+
+        .manual-box { padding: 20px; background: #f1f2f6; border-radius: 25px; margin-bottom: 10px; border: 1px solid #e0e0e0; }
+        .manual-box textarea { 
+            width: 100%; height: 120px; border: none; background: transparent; 
+            font-size: 17px; outline: none; resize: none; line-height: 1.6; font-family: 'Pretendard', sans-serif;
+        }
+        .btn-go { 
+            width: 100%; background: var(--accent); color: white; border: none; 
+            padding: 16px; border-radius: 15px; font-size: 18px; font-weight: bold; margin-top: 10px;
+        }
+
+        .flow-guide { text-align: center; margin: 15px 0; font-size: 13px; color: #7f8c8d; font-weight: 600; background: #f9f9f9; padding: 10px; border-radius: 10px; }
+
+        .verse-table {
+            width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #cccccc;
+            background-color: var(--pastel-bg); border-radius: 12px; overflow: hidden; display: table;
+        }
+        .verse-cell {
+            padding: 20px 18px; text-align: left; font-size: 18px; font-weight: bold;
+            font-style: italic; color: #2c3e50; line-height: 1.8; word-break: keep-all;
+        }
+
+        .box { background: #fdfaf4; padding: 20px; border-radius: 18px; font-size: 17px; line-height: 1.8; white-space: pre-wrap; border-left: 6px solid var(--accent); margin-bottom: 25px; color: #333; position: relative; }
+        .box b, .box strong { color: var(--accent); font-weight: bold; }
+        .copy-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.05); border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+
+        .nav-bar { position: absolute; bottom: 35px; left: 0; right: 0; padding: 0 15px; display: flex; gap: 8px; z-index: 20; }
+        .btn-nav { flex: 1; background: var(--primary); color: white; border: none; padding: 15px 5px; border-radius: 14px; font-size: 15px; font-weight: bold; }
+        .btn-home { background: #7f8c8d; }
+
+        #loading { text-align: center; padding: 120px 30px 0; }
+        .loader { width: 45px; height: 45px; border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 25px; }
+        .loading-text { font-size: 17px; font-weight: 600; color: var(--primary); line-height: 1.5; word-break: keep-all; }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div id="device-container">
+    <div id="config-bar">
+        <div class="config-row">
+            <input type="password" id="apiKey" placeholder="Gemini API Key">
+            <button class="btn-s" onclick="saveLocal()">기억하기</button>
+        </div>
+        <button class="btn-help" onclick="openGuide()">📱 API 키 발급방법 보기</button>
+        <div class="config-row">
+            <button class="btn-s" style="background:#7f8c8d" onclick="exportConfig()">💾 Config 저장</button>
+            <button class="btn-s" style="background:#7f8c8d" onclick="document.getElementById('fIn').click()">📂 Config 불러오기</button>
+            <input type="file" id="fIn" style="display:none" accept=".json" onchange="importConfig(event)">
+        </div>
+    </div>
+    
+    <header><h1>🕊️ 마음의 산책 Pro</h1></header>
+
+    <div class="content-area">
+        <div id="step1" class="step active">
+            <div class="manual-box">
+                <textarea id="mInput" placeholder="예) 직장 승진 스트레스
+또는
+예) 야고보서 1:5"></textarea>
+                <button class="btn-go" onclick="runAll()">기도 및 성경공부 시작하기 ➔</button>
+            </div>
+            <div class="flow-guide">시작기도 ➔ 성경구절 ➔ 성경말씀 ➔ 마침기도</div>
+        </div>
+
+        <div id="loading" class="step">
+            <div class="loader"></div>
+            <p class="loading-text">주님의 이름으로 기도문을 작성중입니다.</p>
+        </div>
+
+        <div id="step2" class="step">
+            <h3 style="color: var(--accent);">🙏 시작 기도</h3>
+            <div class="box"><button class="copy-btn" onclick="copy('opening')">복사</button><span id="opening"></span></div>
+        </div>
+
+        <div id="step3" class="step">
+            <h3 style="color: var(--accent);">📖 성경말씀</h3>
+            <table class="verse-table"><tr><td class="verse-cell" id="verse"></td></tr></table>
+            <h3 style="color: var(--accent);">🎙️ 말씀 강해</h3>
+            <div class="box"><button class="copy-btn" onclick="copy('talk')">복사</button><span id="talk"></span></div>
+        </div>
+
+        <div id="step4" class="step">
+            <h3 style="color: var(--accent);">🔥 마침 기도</h3>
+            <div class="box"><button class="copy-btn" onclick="copy('closing')">복사</button><span id="closing"></span></div>
+        </div>
+    </div>
+
+    <div id="navButtons" class="nav-bar" style="display: none;">
+        <button class="btn-nav" style="background:#bdc3c7;" onclick="prev()">이전</button>
+        <button class="btn-nav btn-home" onclick="goHome()">처음으로</button>
+        <button class="btn-nav" id="nextBtn" onclick="next()">다음</button>
+    </div>
+</div>
+
+<div id="guideModal">
+    <div class="guide-content">
+        <h2>🔑 제미나이 API 키 발급 방법</h2>
+        
+        <div class="guide-step">
+            <div><span class="guide-step-num">1</span><span class="guide-step-title">구글 계정으로 로그인</span></div>
+            <div class="guide-step-desc">구글 계정이 있어야 합니다. 없으면 먼저 구글 계정을 만들어주세요.</div>
+        </div>
+
+        <div class="guide-step">
+            <div><span class="guide-step-num">2</span><span class="guide-step-title">제미나이 사이트 접속</span></div>
+            <div class="guide-step-desc">아래 버튼을 눌러 구글 AI 스튜디오 사이트로 이동하세요.</div>
+            <a href="https://aistudio.google.com/apikey" target="_blank" class="guide-link">🌐 제미나이 사이트 열기</a>
+        </div>
+
+        <div class="guide-step">
+            <div><span class="guide-step-num">3</span><span class="guide-step-title">API 키 만들기</span></div>
+            <div class="guide-step-desc">
+                • 사이트에서 "Get API Key" 또는 "Create API Key" 버튼을 찾아 누르세요.<br>
+                • "Create API key in new project" 버튼을 누르세요.
+            </div>
+        </div>
+
+        <div class="guide-step">
+            <div><span class="guide-step-num">4</span><span class="guide-step-title">API 키 복사하기</span></div>
+            <div class="guide-step-desc">
+                • 만들어진 긴 영문+숫자 키를 복사하세요.<br>
+                • 예시: AIzaSyABC1234defGHI567jklMNO890pqrSTU<br>
+                • 복사 버튼(📋)을 누르면 쉽게 복사됩니다.
+            </div>
+        </div>
+
+        <div class="guide-step">
+            <div><span class="guide-step-num">5</span><span class="guide-step-title">키 붙여넣기</span></div>
+            <div class="guide-step-desc">
+                • 위의 "Gemini API Key" 입력란을 길게 눌러 붙여넣기 하세요.<br>
+                • "기억하기" 버튼을 눌러 저장하세요.<br>
+                • 이제 사용 준비 완료!
+            </div>
+        </div>
+
+        <button class="btn-close-guide" onclick="closeGuide()">✅ 이해했어요</button>
+    </div>
+</div>
+
+<script>
+    let cur = 1;
+    const MODEL = "gemini-2.0-flash";
+
+    window.onload = () => {
+        const saved = localStorage.getItem('g_key');
+        if (saved) document.getElementById('apiKey').value = saved;
+    };
+
+    function saveLocal() { localStorage.setItem('g_key', document.getElementById('apiKey').value); alert("키 저장 완료"); }
+    function exportConfig() {
+        const d = { gemini_api_key: document.getElementById('apiKey').value };
+        const b = new Blob([JSON.stringify(d)], {type: 'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = "config.json"; a.click();
+    }
+    function importConfig(e) {
+        const f = e.target.files[0];
+        const r = new FileReader();
+        r.onload = (ev) => {
+            const j = JSON.parse(ev.target.result);
+            if(j.gemini_api_key) { document.getElementById('apiKey').value = j.gemini_api_key; saveLocal(); alert("불러오기 완료"); }
+        };
+        r.readAsText(f);
+    }
+
+    async function runAll() {
+        const q = document.getElementById('mInput').value;
+        const key = document.getElementById('apiKey').value;
+        if(!q) return alert("중보 내용을 입력해 주세요.");
+        if(!key) return alert("API 키를 입력해 주세요.");
+
+        go(0);
+
+        const prompt = `
+        입력 내용: "${q}"
+
+        [작성 지침]
+        위 입력 내용을 분석하세요:
+        - 만약 성경 구절(예: 요한복음 3:16, 시편 23편)이 입력된 경우: 해당 구절을 중심으로 콘텐츠를 작성하세요.
+        - 만약 기도 주제나 상황(예: 직장 스트레스, 가족 문제)이 입력된 경우: 그 주제에 가장 적합한 성경 구절을 찾아서 콘텐츠를 작성하세요.
+        
+        1. **시작기도**: 입력된 내용(구절 또는 주제)과 연관된 2분 분량의 기도문을 작성하세요. 기도자의 상황을 깊이 이해하고 공감하며, 하나님께 간구하는 내용으로 구성하세요.
+        
+        2. **성경구절**: 
+           - 성경 구절이 입력된 경우: 해당 구절의 전체 내용을 정확히 인용하세요.
+           - 기도 주제가 입력된 경우: 그 주제와 최대한 밀접하게 연관된 성경 구절을 선택하여 인용하세요.
+           - 반드시 정확한 책명, 장, 절을 명시하세요.
+        
+        3. **성경강해**: 선택한 성경 구절에 대해 30분간 읽을 수 있는 깊이 있는 강해를 작성하세요. 다음 내용을 포함하세요:
+           - 구절의 역사적, 문화적 배경
+           - 구절의 신학적 의미와 교훈
+           - 입력된 상황이나 주제에 어떻게 적용되는지
+           - 실제 삶에서의 구체적인 적용 방법
+        
+        4. **마침기도**: 입력된 내용(구절의 교훈 또는 기도 주제)에 기초하여 마무리 기도문을 작성하세요. 하나님의 인도하심과 응답을 구하며, 구체적인 변화와 평안을 구하는 내용으로 마무리하세요.
+        
+        5. 스마트폰에서 읽기 편하도록 모든 문장은 2~3줄마다 <br> 태그를 넣어 줄을 바꾸세요. (단, <br><br> 처럼 빈 줄 여백은 넣지 마세요.)
+        
+        6. 강조하고 싶은 부분은 **강조** 형식을 사용하세요.
+
+        [출력 형식]
+        [시작기도]내용[시작기도]
+        [성경구절]내용[성경구절]
+        [성경강해]내용[성경강해]
+        [마침기도]내용[마침기도]
+        `;
+
+        try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            const d = await res.json();
+            const txt = d.candidates[0].content.parts[0].text;
+            
+            const getPart = (tag) => {
+                const regex = new RegExp(`\\[${tag}\\]([\\s\\S]*?)\\[${tag}\\]`);
+                const match = txt.match(regex);
+                if (match) {
+                    return match[1]
+                        .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+                        .replace(/\n/g, '<br>')
+                        .trim();
+                }
+                return "내용을 불러오지 못했습니다.";
+            };
+
+            document.getElementById('opening').innerHTML = getPart('시작기도');
+            document.getElementById('verse').innerHTML = getPart('성경구절');
+            document.getElementById('talk').innerHTML = getPart('성경강해');
+            document.getElementById('closing').innerHTML = getPart('마침기도');
+            
+            go(2);
+        } catch (e) {
+            alert("API 호출 중 오류가 발생했습니다.");
+            go(1);
+        }
+    }
+
+    function go(n) {
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        if(n === 0) {
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('navButtons').style.display = 'none';
+        } else {
+            document.getElementById('step'+n).classList.add('active'); 
+            cur = n;
+            document.getElementById('navButtons').style.display = 'flex';
+            document.getElementById('nextBtn').innerText = (n === 4) ? "종료" : "다음";
+        }
+        document.querySelector('.content-area').scrollTop = 0;
+    }
+
+    function next() { if(cur < 4) go(cur+1); else goHome(); }
+    function prev() { if(cur > 2) go(cur-1); }
+    function goHome() { if(confirm("처음으로 돌아갈까요?")) { document.getElementById('navButtons').style.display = 'none'; go(1); } }
+    function copy(id) { 
+        const el = document.getElementById(id);
+        const range = document.createRange();
+        range.selectNode(el);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand('copy');
+        alert("복사되었습니다."); 
+    }
+    
+    function openGuide() {
+        document.getElementById('guideModal').classList.add('active');
+    }
+    
+    function closeGuide() {
+        document.getElementById('guideModal').classList.remove('active');
+    }
+</script>
+</body>
+</html>
